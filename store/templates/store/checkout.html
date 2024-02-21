@@ -11,99 +11,9 @@
 
     <!-- Helcim Payment API -->
     <script nonce="{{ your_nonce_value }}"></script>
-    <script type="text/javascript" src="https://secure.helcim.app/helcim-pay/services/start.js"></script>
-    <script type="text/javascript" src="https://secure.myhelcim.com/js/version2.js"></script>
-    <script src="https://cdn.shippo.com/js/v2/shippo.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/axios/dist/axios.min.js"></script>
-    <script type="text/javascript" src="{{ helcim_js.purchase.url }}"></script>
     
-    <!-- Content Security Policy -->
-    <meta http-equiv="Content-Security-Policy" content="frame-ancestors 'self' https://secure.helcim.app https://*.helcim.app https://*.myhelcim.com;">
-
-
-    <script>
-        let checkoutToken; // Declare checkoutToken in a higher scope
-
-        // Function to make API request
-        function makeApiRequest() {
-            const payload = {
-                method: 'POST',
-                headers: {
-                    accept: 'application/json',
-                    'api-token': '',
-                    'content-type': 'application/json',
-                    'helcim-pay-js-':''
-                },
-                body: JSON.stringify({ paymentType: 'purchase', amount: 100, currency: 'USD' })
-            };
-
-            axios.post('https://api.helcim.com/v2/helcim-pay/initialize', payload)
-                .then(response => {
-                    console.log(response);
-                    checkoutToken = response.data.checkoutToken;
-                    console.log('Checkout Token:', checkoutToken);
-                    appendHelcimPayIframe(checkoutToken);
-                })
-                .catch(err => {
-                    console.error(err);
-                    // Handle errors
-                });
-        }
-
-        // Function to append HelcimPayIframe
-        function appendHelcimPayIframe(checkoutToken) {
-            const container = document.getElementById('helcim-container');
-            if (!container) {
-                console.error('Error: Container element not found.');
-                return;
-            }
-
-            const iframe = document.createElement('iframe');
-            iframe.src = `https://secure.helcim.app/helcim-pay/services/start.js?token=${checkoutToken}`;
-            iframe.width = '100%';
-            iframe.height = '600px';
-            iframe.frameBorder = '0';
-
-            container.appendChild(iframe);
-
-            console.log('Appending HelcimPayIframe with checkoutToken:', checkoutToken);
-        }
-
-        // Call the function to make the API request
-        makeApiRequest();
-
-        // Event listener for "Pay Now" button
-        document.getElementById('payNowButton').addEventListener('click', function () {
-            if (typeof checkoutToken !== 'undefined') {
-                appendHelcimPayIframe(checkoutToken, false);
-            } else {
-                console.error('checkoutToken is not defined. Unable to initiate HelcimPayIframe.');
-            }
-        });
-
-        // Event listener for responses from HelcimPay.js modal
-        window.addEventListener('message', (event) => {
-            const helcimPayJsIdentifierKey = 'helcim-pay-js-' + checkoutToken;
-
-            if (event.data.eventName === helcimPayJsIdentifierKey) {
-                if (event.data.eventStatus === 'ABORTED') {
-                    console.error('Transaction failed!', event.data.eventMessage);
-                }
-
-                if (event.data.eventStatus === 'SUCCESS') {
-                    console.log('Transaction success!', event.data.eventMessage);
-
-                    // Parse the transaction response if needed
-                    const transactionResponse = JSON.parse(event.data.eventMessage);
-                    console.log('Parsed Transaction Response:', transactionResponse);
-
-                    // Additional handling based on the transaction response
-                }
-            }
-        });
-
-       
-    </script> 
+   
 
 </head>
 <!-- ... (rest of your HTML code) ... -->
@@ -149,16 +59,7 @@
                 </form>
             </div>
             <br>
-            <form name="helcimForm" id="helcimForm" action="" method="POST">
-                <input type="hidden" id="token" value="{{ helcim_js.purchase.token }}">
-            </form>
-            <div class="box-element hidden" id="payment-info">
-                <a href="javascript:void(0);" onclick="appendHelcimPayIframe(checkoutToken)" id="payNowButton">
-                   Pay Now
-                </a>
-                <div class="helcim-container" id="helcim-container"></div>
-            </div>
-        </div>
+            
         <div class="col-lg-6">
             <div class="box-element">
                 <a class="btn btn-outline-dark" href="{% url 'cart' %}">&#x2190; Back to Cart</a>
@@ -178,8 +79,7 @@
                 <h5>Items: {{order.get_cart_items}}</h5>
                 <h5>Total: ${{order.get_cart_total|floatformat:2}}</h5>
             </div>
-            {% comment %} <button id="calculateShippingButton" class="btnbtn-info">Calculate Shipping</button> {% endcomment %}
-			
+            
         </div>
     </div>
 

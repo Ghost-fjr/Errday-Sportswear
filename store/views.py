@@ -8,64 +8,8 @@ import requests
 from .models import Order, OrderItem, Product, Customer, ShippingAddress
 from .utils import cookieCart, cartData, guestOrder
 from django.http import JsonResponse
-import shippo
 from django.views.decorators.csrf import csrf_exempt
 from django.views.generic.edit import FormView
-
-
-shippo.config.api_key = "shippo_test_6b8b4da6247bd3e14c92a515b1608c982d78a52f"
-#Shippo-API
-def calculate_shipping(request):
-    # Get address and parcel details from the request or use dummy data
-    address_from = {
-        "name": "Shawn Ippotle",
-        "company": "Shippo",
-        "street1": "215 Clayton St.",
-        "city": "San Francisco",
-        "state": "CA",
-        "zip": "94117",
-        "country": "US",
-        "phone": "+1 555 341 9393",
-        "email": "shippotle@shippo.com",
-    }
-
-    address_to = {
-        "name": "Mr Hippo",
-        "company": "Shippo",
-        "street1": "Broadway 1",
-        "city": "New York",
-        "state": "NY",
-        "zip": "10007",
-        "country": "US",
-        "phone": "+1 555 341 9393",
-        "email": "mrhippo@shippo.com",
-    }
-
-    parcel = {
-        "length": "5",
-        "width": "5",
-        "height": "5",
-        "distance_unit": "in",
-        "weight": "2",
-        "mass_unit": "lb",
-    }
-
-    # Create a shipment
-    shipment = shippo.Shipment.create(
-        address_from=address_from,
-        address_to=address_to,
-        parcels=[parcel],
-        async_shipment=False,
-    )
-
-    # Retrieve the first rate for simplicity (you may want to loop through rates)
-    rate = shipment.rates[0]
-
-    # Now you can use rate object to get label_url, tracking_number, etc.
-    label_url = rate.label_url
-    tracking_number = shipment.tracking_number
-
-    return JsonResponse({"label_url": label_url, "tracking_number": tracking_number})
 
 
 def loginview(request):
@@ -233,6 +177,9 @@ def update_cart(request, product_id):
 
     # Return a success response
     return JsonResponse({'success': True})
+
+from django.http import JsonResponse
+
 
 
 def AboutUs(request):

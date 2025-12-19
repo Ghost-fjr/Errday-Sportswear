@@ -1,121 +1,223 @@
 from django.db import models
 from django.contrib.auth.models import User
-# Create your models here.
+from django.core.validators import RegexValidator
+from django.utils import timezone
 
 class Size(models.Model):
-    name = models.CharField(max_length=20, unique=True)
+    """Product size options"""
+    name = models.CharField(max_length=20, unique=True, db_index=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+
+    class Meta:
+        ordering = ['name']
+        verbose_name = 'Size'
+        verbose_name_plural = 'Sizes'
 
     def __str__(self):
         return self.name
 
-class loginview(models.Model):
-    user = models.ForeignKey(User,on_delete=models.CASCADE)
-    mobile = models.CharField(max_length=15,null=True)
-    image = models.FileField(null=True)
-    gender=  models.CharField(max_length=10,null=True)
-    type =  models.CharField(max_length=15,null=True)
-    def _str_(self):
-        return self.user.username
+class UserProfile(models.Model):
+    """Extended user profile information"""
+    GENDER_CHOICES = [
+        ('M', 'Male'),
+        ('F', 'Female'),
+        ('O', 'Other'),
+        ('N', 'Prefer not to say'),
+    ]
+    
+    USER_TYPE_CHOICES = [
+        ('customer', 'Customer'),
+        ('admin', 'Admin'),
+        ('staff', 'Staff'),
+    ]
+    
+    phone_regex = RegexValidator(
+        regex=r'^\+?1?\d{9,15}$',
+        message="Phone number must be entered in the format: '+999999999'. Up to 15 digits allowed."
+    )
+    
+    user = models.OneToOneField(User, on_delete=models.CASCADE, related_name='profile')
+    mobile = models.CharField(validators=[phone_regex], max_length=17, null=True, blank=True)
+    image = models.ImageField(upload_to='profile_images/', null=True, blank=True)
+    gender = models.CharField(max_length=1, choices=GENDER_CHOICES, null=True, blank=True)
+    user_type = models.CharField(max_length=15, choices=USER_TYPE_CHOICES, default='customer')
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'User Profile'
+        verbose_name_plural = 'User Profiles'
+    
+    def __str__(self):
+        return f"{self.user.username} - {self.get_user_type_display()}"
     
 class Customer(models.Model):
-    user = models.OneToOneField(User,on_delete=models.CASCADE, null=True, blank=True)
-    name = models.CharField(max_length=200, null=True)
-    email = models.CharField(max_length=200, null=True)
+    """Customer information for orders and cart"""
+    user = models.OneToOneField(User, on_delete=models.CASCADE, null=True, blank=True, related_name='customer')
+    name = models.CharField(max_length=200, null=True, blank=True)
+    email = models.EmailField(max_length=200, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Customer'
+        verbose_name_plural = 'Customers'
+        indexes = [
+            models.Index(fields=['email', 'name']),
+        ]
     
     def __str__(self):
-        return self.name
+        return self.name if self.name else self.email or f"Customer {self.id}"
     
     
 class Product(models.Model):
+    """Product catalog with size variants"""
     SIZE_CHOICES = [
+        ('XS', 'Extra Small'),
         ('S', 'Small'),
         ('M', 'Medium'),
         ('L', 'Large'),
-        ('XL', 'Xtra-Large'),
+        ('XL', 'Extra Large'),
         ('XXL', 'XXL'),
-        ('Xs','Xtra-small')
     ]
 
-    name = models.CharField(max_length=200, null=True)
+    name = models.CharField(max_length=200, null=True, blank=True, db_index=True)
     price = models.DecimalField(max_digits=7, decimal_places=2)
-    digital = models.BooleanField(default=False, null=True, blank=False)
-    image = models.ImageField(null=True, blank=True)
-    size = models.CharField(max_length=3, choices=SIZE_CHOICES,null=True, blank=True)
+    digital = models.BooleanField(default=False)
+    image = models.ImageField(upload_to='products/', null=True, blank=True)
+    size = models.CharField(max_length=3, choices=SIZE_CHOICES, null=True, blank=True)
+    description = models.TextField(blank=True, null=True)
+    stock = models.IntegerField(default=0)
+    is_active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ['-created_at']
+        verbose_name = 'Product'
+        verbose_name_plural = 'Products'
+        indexes = [
+            models.Index(fields=['name', 'is_active']),
+            models.Index(fields=['-created_at']),
+        ]
 
     def __str__(self):
-        return self.name
+        return f"{self.name} ({self.get_size_display() if self.size else 'No size'})"
 
     @property
     def imageURL(self):
+        """Return image URL or empty string if no image"""
         try:
             url = self.image.url
-        except:
+        except (ValueError, AttributeError):
             url = ''
         return url
 
     def get_size_choices(self):
+        """Return available size choices"""
         return self.SIZE_CHOICES
-#order object ,customer can have many orders    
-class Order(models.Model):  
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
+    
+    @property
+    def is_in_stock(self):
+        """Check if product is in stock"""
+        return self.stock > 0
+class Order(models.Model):
+    """Customer order - can have many order items"""
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True, related_name='orders')
     date_ordered = models.DateTimeField(auto_now_add=True)
-    complete = models.BooleanField(default=False, null = True, blank=False)
-    transaction_id = models.CharField(max_length=200, null=True)
+    complete = models.BooleanField(default=False)
+    transaction_id = models.CharField(max_length=200, null=True, blank=True, db_index=True)
+    created_at = models.DateTimeField(null=True, blank=True)
+    updated_at = models.DateTimeField(auto_now=True)
+    
+    class Meta:
+        ordering = ['-date_ordered']
+        verbose_name = 'Order'
+        verbose_name_plural = 'Orders'
+        indexes = [
+            models.Index(fields=['-date_ordered']),
+            models.Index(fields=['complete', '-date_ordered']),
+        ]
     
     def __str__(self):
-        return str(self.id)
+        return f"Order #{self.id} - {self.customer.name if self.customer else 'Guest'}"
     
     @property
     def shipping(self):
+        """Determine if order requires shipping (has physical products)"""
         shipping = False
         orderitems = self.orderitem_set.all()
-        for i in orderitems:
-            if i.product.digital == False:
+        for item in orderitems:
+            if not item.product.digital:
                 shipping = True
+                break
         return shipping
     
     @property
     def get_cart_total(self):
-        orderitems =self.orderitem_set.all()
-        total= sum([item.get_total for item in orderitems])
+        """Calculate total cart value"""
+        orderitems = self.orderitem_set.all()
+        total = sum([item.get_total for item in orderitems])
         return total
 
     @property
     def get_cart_items(self):
-        orderitems =self.orderitem_set.all()
-        total= sum([item.quantity for item in orderitems])
+        """Get total number of items in cart"""
+        orderitems = self.orderitem_set.all()
+        total = sum([item.quantity for item in orderitems])
         return total
 
-#model will need a product attribute connected to the product model,the order this item is  connected to ,
-#  quantity  and date this item was added to cart. 
-class OrderItem(models.Model):  
-    product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True)
-    order = models.ForeignKey(Order, on_delete=models.SET_NULL, blank=True, null=True)
-    quantity = models.IntegerField(default=0, null=True, blank=True)
+class OrderItem(models.Model):
+    """Individual item in an order with quantity"""
+    product = models.ForeignKey(Product, on_delete=models.SET_NULL, blank=True, null=True, related_name='order_items')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, related_name='items')
+    quantity = models.IntegerField(default=0)
     date_added = models.DateTimeField(auto_now_add=True)
     
+    class Meta:
+        ordering = ['-date_added']
+        verbose_name = 'Order Item'
+        verbose_name_plural = 'Order Items'
+        indexes = [
+            models.Index(fields=['order', '-date_added']),
+        ]
     
+    def __str__(self):
+        return f"{self.quantity}x {self.product.name if self.product else 'Deleted Product'}"
     
     @property
     def get_total(self):
-        total = self.product.price * self.quantity
-        return total
+        """Calculate total price for this order item"""
+        if self.product:
+            total = self.product.price * self.quantity
+            return total
+        return 0
     
-# Shipping address  model.This model will be a child to order and will only be created if at least one orderitem
-# within an order is a physical product(if product.digital == False).
-# also connect this model to a customer so that a customer can reuse this shipping adddress if needed in future
-
 class ShippingAddress(models.Model):
-    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True)
-    order = models.ForeignKey(Order, on_delete=models.SET_NULL, blank=True, null=True)
-    address = models.CharField(max_length=200, null=True)
-    city = models.CharField(max_length=200, null=True)
-    state = models.CharField(max_length=200, null=True)
-    zipcode = models.CharField(max_length=200, null=True)
+    """Shipping address for physical product orders"""
+    customer = models.ForeignKey(Customer, on_delete=models.SET_NULL, blank=True, null=True, related_name='addresses')
+    order = models.ForeignKey(Order, on_delete=models.CASCADE, blank=True, null=True, related_name='shipping_address')
+    address = models.CharField(max_length=200, null=True, blank=True)
+    city = models.CharField(max_length=200, null=True, blank=True)
+    state = models.CharField(max_length=200, null=True, blank=True)
+    zipcode = models.CharField(max_length=20, null=True, blank=True)
+    country = models.CharField(max_length=100, default='USA')
     date_added = models.DateTimeField(auto_now_add=True)
 
+    class Meta:
+        ordering = ['-date_added']
+        verbose_name = 'Shipping Address'
+        verbose_name_plural = 'Shipping Addresses'
+
     def __str__(self):
-        return self.address
+        return f"{self.address}, {self.city}, {self.state} {self.zipcode}"
+    
+    @property
+    def full_address(self):
+        """Return formatted full address"""
+        return f"{self.address}, {self.city}, {self.state} {self.zipcode}, {self.country}"
     
     
     

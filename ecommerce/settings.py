@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/4.2/ref/settings/
 """
 import os
 from pathlib import Path
+from decouple import config, Csv
 
 
 # Build paths inside the project like this: BASE_DIR / 'subdir'.
@@ -22,12 +23,12 @@ BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 # See https://docs.djangoproject.com/en/4.2/howto/deployment/checklist/
 
 # SECURITY WARNING: keep the secret key used in production secret!
-SECRET_KEY = 'django-insecure-=r3j3i0c#e9%*)699!!@*ebh5h^a4-iqj3c1*j%pbgou6x9*k&'
+SECRET_KEY = config('SECRET_KEY', default='django-insecure-=r3j3i0c#e9%*)699!!@*ebh5h^a4-iqj3c1*j%pbgou6x9*k&')
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = config('DEBUG', default=True, cast=bool)
 
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = config('ALLOWED_HOSTS', default='localhost,127.0.0.1', cast=Csv())
 
 
 # Application definition
@@ -51,7 +52,7 @@ MIDDLEWARE = [
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
-    'ecommerce.middleware.CSPMiddleware'
+    'ecommerce.middleware.SecurityHeadersMiddleware'
 ]
 
 ROOT_URLCONF = 'ecommerce.urls'
@@ -103,22 +104,55 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
-# Helcim Settings
-# HELCIM_API_URL = 'https://secure.myhelcim.com/api/'
-# HELCIM_ACCOUNT_ID = 'your_helcim_account_id'
-# HELCIM_API_TOKEN = 'K2K39trxSR9gkcHRtZM9SG5sk'
-# HELCIM_TERMINAL_ID = 'your_helcim_terminal_id'
 
-# DJANGO_HELCIM_CONFIG = {
-#     'purchase': {
-#         'url': 'https://myhelcim.com/js/version2.js',
-#         'token': 'K2K39trxSR9gkcHRtZM9SG5sk',
-#     },
-#     'preauthorization': {
-#         'url':  'https://myhelcim.com/js/version2.js',
-#         'token': 'K2K39trxSR9gkcHRtZM9SG5sk',
-#     }
-# }
+# Helcim Payment Gateway Settings
+HELCIM_API_URL = config('HELCIM_API_URL', default='https://secure.myhelcim.com/api/')
+HELCIM_ACCOUNT_ID = config('HELCIM_ACCOUNT_ID', default='')
+HELCIM_API_TOKEN = config('HELCIM_API_TOKEN', default='')
+HELCIM_TERMINAL_ID = config('HELCIM_TERMINAL_ID', default='')
+
+# Logging Configuration
+LOGGING = {
+    'version': 1,
+    'disable_existing_loggers': False,
+    'formatters': {
+        'verbose': {
+            'format': '{levelname} {asctime} {module} {message}',
+            'style': '{',
+        },
+        'simple': {
+            'format': '{levelname} {message}',
+            'style': '{',
+        },
+    },
+    'handlers': {
+        'console': {
+            'class': 'logging.StreamHandler',
+            'formatter': 'verbose',
+        },
+        'file': {
+            'class': 'logging.FileHandler',
+            'filename': os.path.join(BASE_DIR, 'django.log'),
+            'formatter': 'verbose',
+        },
+    },
+    'root': {
+        'handlers': ['console', 'file'],
+        'level': 'INFO',
+    },
+    'loggers': {
+        'django': {
+            'handlers': ['console', 'file'],
+            'level': config('DJANGO_LOG_LEVEL', default='INFO'),
+            'propagate': False,
+        },
+        'store': {
+            'handlers': ['console', 'file'],
+            'level': 'DEBUG' if DEBUG else 'INFO',
+            'propagate': False,
+        },
+    },
+}
 
 # Internationalization
 # https://docs.djangoproject.com/en/4.2/topics/i18n/
@@ -150,3 +184,17 @@ MEDIA_ROOT = os.path.join(BASE_DIR, 'static/images')
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field
 
 DEFAULT_AUTO_FIELD = 'django.db.models.BigAutoField'
+
+# Security Settings
+SECURE_BROWSER_XSS_FILTER = config('SECURE_BROWSER_XSS_FILTER', default=True, cast=bool)
+SECURE_CONTENT_TYPE_NOSNIFF = config('SECURE_CONTENT_TYPE_NOSNIFF', default=True, cast=bool)
+X_FRAME_OPTIONS = 'DENY'
+
+# Production security settings (only enable in production)
+if not DEBUG:
+    SESSION_COOKIE_SECURE = True
+    CSRF_COOKIE_SECURE = True
+    SECURE_SSL_REDIRECT = True
+    SECURE_HSTS_SECONDS = 31536000
+    SECURE_HSTS_INCLUDE_SUBDOMAINS = True
+    SECURE_HSTS_PRELOAD = True

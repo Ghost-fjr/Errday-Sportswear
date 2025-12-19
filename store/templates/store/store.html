@@ -1,18 +1,308 @@
 {% extends 'store/main.html' %}
 {% load static %}
 {% block content %}
-	<div class="row">
-		{% for product in products %}
-		<div class="col-lg-4">
-			<img class="thumbnail" src="{{product.imageURL}}">
-			<div class="box-element product">
-				<h6><strong>{{product.name}}</strong></h6>
-				<hr> 
-				<button data-product={{product.id}} data-action="add" class="btn btn-outline-secondary add-btn update-cart">Add to Cart</button>
-				<a class="btn btn-outline-success" href="#">View</a>
-				<h4 style="display: inline-block;float: right">${{product.price|floatformat:2}}</h4>
-			</div>
-		</div>
-		{% endfor %}
-	</div>
+
+<!-- Hero Section with Background Image -->
+<section class="hero-section"
+    style="background-image: linear-gradient(rgba(15, 15, 30, 0.7), rgba(15, 15, 30, 0.7)), url('{% static 'images/splash.jpeg' %}');">
+    <div class="hero-content">
+        <h1 class="hero-title gradient-text">Elevate Your Performance</h1>
+        <p class="hero-subtitle">Premium sportswear designed for champions</p>
+        <a href="#products" class="btn btn-warning btn-lg">Shop Now</a>
+    </div>
+</section>
+
+<!-- Category Showcase -->
+<section class="category-showcase">
+    <div class="container">
+        <h2 class="section-title gradient-text text-center mb-5">Shop by Category</h2>
+        <div class="row">
+            <div class="col-md-4 mb-4">
+                <div class="category-card">
+                    <img src="{% static 'images/men.jpeg' %}" alt="Men's Collection" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Men's Collection</h3>
+                        <p>Performance gear for peak athletes</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="category-card">
+                    <img src="{% static 'images/women.jpeg' %}" alt="Women's Collection" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Women's Collection</h3>
+                        <p>Style meets functionality</p>
+                    </div>
+                </div>
+            </div>
+            <div class="col-md-4 mb-4">
+                <div class="category-card">
+                    <img src="{% static 'images/climate.jpeg' %}" alt="Climate Tech" class="category-image">
+                    <div class="category-overlay">
+                        <h3>Climate Tech</h3>
+                        <p>Advanced temperature control</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+</section>
+
+<!-- Products Section -->
+<div class="products-section" id="products">
+    <div class="container">
+        <h2 class="section-title gradient-text text-center mb-5">Featured Products</h2>
+
+        <div class="row">
+            {% for product in products %}
+            <div class="col-lg-4 col-md-6">
+                <div class="product-card-wrapper">
+                    {% if product.image %}
+                    <img class="thumbnail" src="{{product.imageURL}}" alt="{{product.name}}">
+                    {% else %}
+                    <img class="thumbnail" src="{% static 'images/2+placeholder.png' %}" alt="{{product.name}}">
+                    {% endif %}
+
+                    <div class="box-element product">
+                        <h6><strong>{{product.name}}</strong></h6>
+
+                        {% if product.description %}
+                        <p style="font-size: 0.9rem; color: var(--text-muted); margin: 0.5rem 0;">
+                            {{product.description|truncatewords:15}}
+                        </p>
+                        {% endif %}
+
+                        {% if product.size %}
+                        <div style="margin: 0.75rem 0;">
+                            <span class="size-badge">
+                                Size: {{product.get_size_display}}
+                            </span>
+                        </div>
+                        {% endif %}
+
+                        <hr>
+
+                        <div
+                            style="display: flex; justify-content: space-between; align-items: center; margin-top: 1rem; flex-wrap: wrap; gap: 0.5rem;">
+                            <h4 class="product-price" style="margin: 0;">
+                                ${{product.price|floatformat:2}}
+                            </h4>
+
+                            <div style="display: flex; gap: 0.5rem;">
+                                <button data-product={{product.id}} data-action="add"
+                                    class="btn btn-outline-secondary add-btn update-cart" title="Add to cart">
+                                    Add to Cart
+                                </button>
+                            </div>
+                        </div>
+
+                        {% if not product.is_active %}
+                        <div style="margin-top: 0.5rem;">
+                            <span class="stock-badge out-of-stock">
+                                Out of Stock
+                            </span>
+                        </div>
+                        {% elif product.stock %}
+                        <div style="margin-top: 0.5rem;">
+                            <span style="color: var(--text-muted); font-size: 0.85rem;">
+                                {{product.stock}} in stock
+                            </span>
+                        </div>
+                        {% endif %}
+                    </div>
+                </div>
+            </div>
+            {% empty %}
+            <div class="col-12" style="text-align: center; padding: 4rem 0;">
+                <h3 style="color: var(--text-secondary);">No products available</h3>
+                <p style="color: var(--text-muted);">Check back soon for new arrivals!</p>
+            </div>
+            {% endfor %}
+        </div>
+    </div>
+</div>
+
+<style>
+    /* Hero Section */
+    .hero-section {
+        position: relative;
+        background-size: cover;
+        background-position: center;
+        background-attachment: fixed;
+        padding: 120px 20px;
+        text-align: center;
+        margin-bottom: 4rem;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+    }
+
+    .hero-content {
+        position: relative;
+        z-index: 2;
+        max-width: 800px;
+        margin: 0 auto;
+    }
+
+    .hero-title {
+        font-size: 3.5rem;
+        font-weight: 800;
+        margin-bottom: 1rem;
+        animation: fadeInUp 0.8s ease-out;
+    }
+
+    .hero-subtitle {
+        font-size: 1.5rem;
+        color: var(--text-secondary);
+        margin-bottom: 2rem;
+        animation: fadeInUp 0.8s ease-out 0.2s both;
+    }
+
+    .hero-section .btn {
+        animation: fadeInUp 0.8s ease-out 0.4s both;
+        padding: 1rem 2.5rem;
+        font-size: 1.1rem;
+    }
+
+    /* Category Showcase */
+    .category-showcase {
+        margin-bottom: 4rem;
+    }
+
+    .category-card {
+        position: relative;
+        border-radius: var(--radius-lg);
+        overflow: hidden;
+        cursor: pointer;
+        transition: all var(--transition-normal);
+        height: 300px;
+    }
+
+    .category-card:hover {
+        transform: translateY(-10px);
+        box-shadow: var(--shadow-lg), 0 0 30px rgba(102, 126, 234, 0.3);
+    }
+
+    .category-image {
+        width: 100%;
+        height: 100%;
+        object-fit: cover;
+        transition: all var(--transition-slow);
+    }
+
+    .category-card:hover .category-image {
+        transform: scale(1.1);
+    }
+
+    .category-overlay {
+        position: absolute;
+        bottom: 0;
+        left: 0;
+        right: 0;
+        background: linear-gradient(to top, rgba(0, 0, 0, 0.9), transparent);
+        padding: 2rem;
+        transform: translateY(20px);
+        transition: all var(--transition-normal);
+    }
+
+    .category-card:hover .category-overlay {
+        transform: translateY(0);
+    }
+
+    .category-overlay h3 {
+        color: white;
+        font-size: 1.5rem;
+        margin-bottom: 0.5rem;
+    }
+
+    .category-overlay p {
+        color: var(--text-secondary);
+        margin: 0;
+    }
+
+    /* Section Titles */
+    .section-title {
+        font-size: 2.5rem;
+        margin-bottom: 3rem;
+    }
+
+    /* Product Enhancements */
+    .products-section {
+        animation: fadeIn 0.6s ease-in;
+    }
+
+    .size-badge {
+        background: rgba(102, 126, 234, 0.2);
+        color: var(--text-accent);
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.85rem;
+        font-weight: 600;
+        display: inline-block;
+    }
+
+    .stock-badge {
+        padding: 0.25rem 0.75rem;
+        border-radius: 20px;
+        font-size: 0.75rem;
+        font-weight: 600;
+    }
+
+    .stock-badge.out-of-stock {
+        background: rgba(245, 87, 108, 0.2);
+        color: var(--accent-secondary);
+    }
+
+    .product-price {
+        background: var(--secondary-gradient);
+        -webkit-background-clip: text;
+        -webkit-text-fill-color: transparent;
+        background-clip: text;
+        font-weight: 800 !important;
+    }
+
+    /* Animations */
+    @keyframes fadeIn {
+        from {
+            opacity: 0;
+            transform: translateY(20px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    @keyframes fadeInUp {
+        from {
+            opacity: 0;
+            transform: translateY(30px);
+        }
+
+        to {
+            opacity: 1;
+            transform: translateY(0);
+        }
+    }
+
+    /* Responsive */
+    @media (max-width: 768px) {
+        .hero-title {
+            font-size: 2.5rem;
+        }
+
+        .hero-subtitle {
+            font-size: 1.2rem;
+        }
+
+        .category-card {
+            height: 250px;
+            margin-bottom: 1rem;
+        }
+
+        .section-title {
+            font-size: 2rem;
+        }
+    }
+</style>
 {% endblock content %}

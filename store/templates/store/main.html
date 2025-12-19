@@ -1,24 +1,33 @@
 <!DOCTYPE html>
 {% load static %}
 <html>
+
 <head>
 	<title>Errday</title>
 
 	<meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1, minimum-scale=1" />
-	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css" integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
+	<link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/css/bootstrap.min.css"
+		integrity="sha384-Vkoo8x4CGsO3+Hhxv8T/Q5PaXtkKtu6ug5TOeNV6gBiFeWPGFN9MuhOf23Q9Ifjh" crossorigin="anonymous">
 
 	<link rel="stylesheet" type="text/css" href="{% static 'css/main.css' %}">
-	
-	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js" integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n" crossorigin="anonymous"></script>
 
-	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js" integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo" crossorigin="anonymous"></script>
+	<script src="https://code.jquery.com/jquery-3.4.1.slim.min.js"
+		integrity="sha384-J6qa4849blE2+poT4WnyKhv5vZF5SrPo0iEjwBvKU7imGFAV0wwj1yYfoRSJoZ+n"
+		crossorigin="anonymous"></script>
 
-	
-	{% comment %} <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js" integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6" crossorigin="anonymous"></script>  {% endcomment %}
+	<script src="https://cdn.jsdelivr.net/npm/popper.js@1.16.0/dist/umd/popper.min.js"
+		integrity="sha384-Q6E9RHvbIyZFJoft+2mJbHaEWldlvI9IOYy5n3zV9zzTtmI3UksdQRVvoxMfooAo"
+		crossorigin="anonymous"></script>
 
-	<script type = "text/javascript" src = "{% static 'js/cart.js' %}"></script>
 
-<script>
+	{% comment %}
+	<script src="https://stackpath.bootstrapcdn.com/bootstrap/4.4.1/js/bootstrap.min.js"
+		integrity="sha384-wfSDF2E50Y2D1uUdj0O3uMBJnjuUD4Ih7YwaYd1iqfktj0Uod8GCExl3Og8ifwB6"
+		crossorigin="anonymous"></script> {% endcomment %}
+
+	<script type="text/javascript" src="{% static 'js/cart.js' %}"></script>
+
+	<script>
 		var user = '{{request.user}}'
 
 		function getToken(name) {
@@ -37,130 +46,147 @@
 			return cookieValue;
 		}
 		var csrftoken = getToken('csrftoken');
-	
+
 
 		function getCookie(name) {
 			//split cookie string and get all individual name=value pairs in an array
 			var cookieArr = document.cookie.split(";");
 
 			//loop through the array elements
-			for(var i=0; i<cookieArr.length; i++) {
+			for (var i = 0; i < cookieArr.length; i++) {
 				var cookiePair = cookieArr[i].split("=");
 
 				/*Removing whitespaces at the beginning of the cookie name and compare  it with the given string */
-				if(name == cookiePair[0].trim()){
+				if (name == cookiePair[0].trim()) {
 					//Decode the cookie value and return
 					return decodeURIComponent(cookiePair[1]);
 				}
 			}
 
-		//Return null if not found
-		return null;
+			//Return null if not found
+			return null;
 
-	}
-	var cart = JSON.parse(getCookie('cart'))
-	if(cart == undefined){
-		cart = {}
-		console.log('Cart was created!')
-		document.cookie = 'cart=' + JSON.stringify(cart) +";domain=;path=/"
-	}
+		}
+		var cart = JSON.parse(getCookie('cart'))
+		if (cart == undefined) {
+			cart = {}
+			console.log('Cart was created!')
+			document.cookie = 'cart=' + JSON.stringify(cart) + ";domain=;path=/"
+		}
 
 
-	console.log('cart:',cart)
-</script>
-	
-	
+		console.log('cart:', cart)
+	</script>
+
+
 
 </head>
+
 <body>
-	 
-	<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-	   	<a class="navbar-brand" href="{% url 'store' %}">Errday Sportswear</a>
-		<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarSupportedContent" aria-controls="navbarSupportedContent" aria-expanded="false" aria-label="Toggle navigation">
-		  <span class="navbar-toggler-icon"></span>
-		</button>
-	  
-		
 
-	  <div class="collapse navbar-collapse" id="navbarSupportedContent">
-		  <ul class="navbar-nav mr-auto">
-			<li class="nav-item active">
-			  <a class="nav-link" href="{% url 'store' %}"><span class="sr-only">(current)</span></a> 
-			</li>
-			<a class="floating-logo"><img src="images/logo.png"></a>
-		</ul>
+	<!-- Premium Navbar -->
+	<nav class="navbar navbar-expand-lg navbar-dark">
+		<div class="container-fluid">
+			<!-- Brand Logo and Name -->
+			<a class="navbar-brand d-flex align-items-center" href="{% url 'store' %}">
+				<img src="{% static 'images/logo.png' %}" alt="Errday Logo" style="height: 40px; margin-right: 12px;">
+				<span class="brand-text">Errday Sportswear</span>
+			</a>
 
-		
-		
-		<div class="form-inline my-2 my-lg-0">
-			<a href="login.html"class="btn btn-warning">Login</a>
-			
-			<a href="{% url 'cart' %}">
-			   <img  id="cart-icon" src="{% static 'images/cart.png' %}">
-		   </a>
-		   <p id="cart-total">{{cartItems}}</p>
+			<!-- Mobile Toggle -->
+			<button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarContent"
+				aria-controls="navbarContent" aria-expanded="false" aria-label="Toggle navigation">
+				<span class="navbar-toggler-icon"></span>
+			</button>
 
-	   </div>
-	  </div>
+			<!-- Navbar Content -->
+			<div class="collapse navbar-collapse" id="navbarContent">
+				<!-- Navigation Links -->
+				<ul class="navbar-nav mx-auto">
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'store' %}">Shop</a>
+					</li>
+					<li class="nav-item">
+						<a class="nav-link" href="{% url 'AboutUs' %}">About</a>
+					</li>
+				</ul>
+
+				<!-- Right Side Actions -->
+				<div class="navbar-actions d-flex align-items-center">
+					{% if request.user.is_authenticated %}
+					<span class="user-greeting">Hello, {{request.user.username}}</span>
+					<a href="{% url 'logout' %}" class="btn btn-outline-warning ms-2">Logout</a>
+					{% else %}
+					<a href="{% url 'login' %}" class="btn btn-warning">Login</a>
+					{% endif %}
+
+					<!-- Cart Icon with Counter -->
+					<a href="{% url 'cart' %}" class="cart-link">
+						<img id="cart-icon" src="{% static 'images/cart.png' %}" alt="Cart">
+						{% if cartItems > 0 %}
+						<span id="cart-total">{{cartItems}}</span>
+						{% endif %}
+					</a>
+				</div>
+			</div>
+		</div>
 	</nav>
-	
 
-	
-		<source src="images/Video.mp4" type="Video/mp4">
-		</video>
-		 <style>
-			#bgvideo {
-			position:relative; 
+
+
+	<source src="images/Video.mp4" type="Video/mp4">
+	</video>
+	<style>
+		#bgvideo {
+			position: relative;
 			margin-top: 20px;
-			left:0%%;
-			right:0%%;
-			
+			left: 0%%;
+			right: 0%%;
+
 			object-fit: cover;
-			width:1348px; 
-			height:250px;
-			}
-		 </style> 
+			width: 1348px;
+			height: 250px;
+		}
+	</style>
 	{% comment %} This is a discount alert {% endcomment %}
 
 	{% comment %} {% if show_discount_alert %}
-        <script>
-            alert("Enter your email for a 20% discount!");
-        </script>
-    {% endif %} {% endcomment %}
-	
-	
-    <div class="container">
-            {% block content %}
-		
+	<script>
+		alert("Enter your email for a 20% discount!");
+	</script>
+	{% endif %} {% endcomment %}
 
-            {% endblock content %}
-    </div>
+
+	<div class="container">
+		{% block content %}
+
+
+		{% endblock content %}
+	</div>
 
 
 	<!--Insert contact details here-->
-<section class="explore">
-	<div class="row">
-		
-		<div class="explore-col"
-		<h1><b>CLIENT SERVICES</b></h1>
-		<p>Payment</p> <br> 
-		<p>Track Order </p> 
-		</div>
+	<section class="explore">
+		<div class="row">
 
-		<div class="explore-col"
-		<h2><b><a href="AboutUs.html">THE COMPANY</a></b></h2>
-		<p>About us</p> <br> 
-		<p>Privacy policy </p> 
-		</div>
+			<div class="explore-col" <h1><b>CLIENT SERVICES</b></h1>
+				<p>Payment</p> <br>
+				<p>Track Order </p>
+			</div>
 
-		<div class="explore-col"
-		<h3><b><a href="AboutUs.html">CONTACT US</a></b></h3>
-		<p>Call us at</p> <br> 
-		<p>Email us at </p> 
-		</div>
+			<div class="explore-col" <h2><b><a href="AboutUs.html">THE COMPANY</a></b></h2>
+				<p>About us</p> <br>
+				<p>Privacy policy </p>
+			</div>
 
-	</div>
-</section>
+			<div class="explore-col" <h3><b><a href="AboutUs.html">CONTACT US</a></b></h3>
+				<p>Call us at</p> <br>
+				<p>Email us at </p>
+			</div>
+
+		</div>
+	</section>
 
 </body>
+
 </html>

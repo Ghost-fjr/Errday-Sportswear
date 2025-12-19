@@ -1,0 +1,57 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+
+# Virtual Environments
+.venv/
+venv/
+ENV/
+env/
+djandoenv/
+djangoenv/
+envs/
+
+# Django
+*.log
+db.sqlite3
+db.sqlite3-journal
+# /static/  # Temporarily allow for UI development
+/media/
+!static/.gitkeep
+!media/.gitkeep
+
+# Allow static CSS and JS for development
+!static/css/
+!static/js/
+static/css/*.map
+static/js/*.map
+
+# Environment Variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Testing
+.coverage
+htmlcov/
+.pytest_cache/
+.tox/
+
+# Build
+*.egg-info/
+dist/
+build/
